@@ -1,0 +1,49 @@
+//Exececute the program
+async function runModel() {
+  //Getting options selected
+  var modelName = "resnet";
+  var modeName = "batch";
+  const imageSize = 224;
+  const arrayExpected = [1, 3, imageSize, imageSize];
+
+  console.log("Loading...");
+  await loadModel();
+
+  var result;
+  console.log("Entering mode: ", modeName);
+  switch (modeName) {
+    case "batch":
+      console.log("Running batch mode");
+      result = await runBatchModel(
+        imageSize,
+        arrayExpected,
+        imageURL,
+        "output.json",
+        modelName
+      );
+      break;
+    default:
+      console.log("Running single mode");
+      result = await runSingleModel(imageSize, arrayExpected, modelName);
+  }
+
+  console.log("Inference completed");
+  return result;
+}
+
+// Create an ONNX inference session with WebGL backend.
+// Can be 'cpu', 'wasm' or 'webgl
+async function loadModel() {
+  //Session options to load
+  const sessionOptions = {
+    executionProviders: ["wasm"],
+    enableProfiling: true
+  };
+
+  session = await ort.InferenceSession.create(
+    "./resnet50-v1-7.onnx",
+    sessionOptions
+  );
+
+  console.log("Model Loaded");
+}

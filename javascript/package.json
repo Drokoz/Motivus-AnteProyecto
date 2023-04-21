@@ -4,6 +4,7 @@
     "jimp": "^0.22.7",
     "ndarray": "^1.0.19",
     "ndarray-ops": "^1.2.2",
+    "onnxruntime-node": "^1.14.0",
     "onnxruntime-web": "^1.14.0"
   }
 }
