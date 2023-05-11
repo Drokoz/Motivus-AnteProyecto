@@ -1,5 +1,7 @@
 //Section of tensors
-
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 //Get tensor from the image loaded in page
 async function getTensorFromImage(imageSize, arrayExpected, modelName) {
   //This commented section is for another preprocess steps
@@ -8,7 +10,7 @@ async function getTensorFromImage(imageSize, arrayExpected, modelName) {
   const img = new Image();
   img.onload = function () {
     imgElement = document.getElementById("image_url");
-    console.log(imgElement);
+    //console.log(imgElement);
     img.width = this.width;
     img.height = this.height;
   };
@@ -37,6 +39,7 @@ async function getTensorFromBatch(
   modelName
 ) {
   k = 0;
+  //console.log(imgArray);
   const countImages = imgArray.length;
   arrayExpected[0] = countImages;
   //console.log(imageSize);
@@ -46,7 +49,7 @@ async function getTensorFromBatch(
   );
   for (let i = 0; i < countImages; i++) {
     const element = imgArray[i];
-    const preprocessedData = preprocess[modelName](
+    const preprocessedData = await preprocess[modelName](
       imageSize,
       imageSize,
       element
@@ -66,7 +69,7 @@ async function getTensorFromBatch(
 //Case manegment to call diferent preprocess steps
 const preprocess = {
   //Preprocess raw image data to match YoloV4 requirement.
-  yolo: function preprocessYOLO(width, height, img) {
+  yolo: async function preprocessYOLO(width, height, img) {
     //width and height = iw, ih
 
     //Obtaining real values of width and height
@@ -77,7 +80,7 @@ const preprocess = {
     const scale = Math.min(height / realHeight, width / realWidth);
     const newWidth = parseInt(realWidth * scale);
     const newHeight = parseInt(realHeight * scale);
-    console.log(scale, newWidth, newHeight, realWidth, realHeight);
+    //console.log(scale, newWidth, newHeight, realWidth, realHeight);
 
     //Creating a mat to use cv
     let mat = cv.imread(img);
@@ -93,7 +96,7 @@ const preprocess = {
       newWidth,
       4
     ]);
-    console.log(imageResized);
+    //console.log(imageResized);
 
     const arrayExpected = [height, width, 3];
     //const arrayExpected = [3, height, width]
@@ -120,7 +123,10 @@ const preprocess = {
     return imagePadded;
   },
   //Preprocess raw image data to match Resnet requirement. (N x 3 x H x W),
-  resnet: function preprocessResnet(width, height, img) {
+  resnet: async function preprocessResnet(width, height, img) {
+    //console.log(img);
+    await sleep(0.1);
+    //console.log(img.height);
     let mat = cv.imread(img);
 
     //Resize
