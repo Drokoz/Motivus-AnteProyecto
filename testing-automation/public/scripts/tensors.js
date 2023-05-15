@@ -49,6 +49,7 @@ async function getTensorFromBatch(
   );
   for (let i = 0; i < countImages; i++) {
     const element = imgArray[i];
+    //console.log(modelName);
     const preprocessedData = await preprocess[modelName](
       imageSize,
       imageSize,

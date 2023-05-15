@@ -11,3 +11,23 @@ function download(content, fileName, contentType) {
 function onDownload(jsonData, fileName) {
   download(JSON.stringify(jsonData), fileName, "text/plain");
 }
+
+async function postJSON(data, url) {
+  try {
+    const response = await fetch(url, {
+      method: "POST", // or 'PUT'
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(data)
+    });
+
+    const result = await response.json();
+    console.log("Success:", result);
+  } catch (error) {
+    console.error("Error:", error);
+  }
+}
+
+const data = { username: "example" };
+postJSON(data);

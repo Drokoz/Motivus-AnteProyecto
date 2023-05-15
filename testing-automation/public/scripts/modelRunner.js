@@ -10,7 +10,7 @@ async function runOnnxModel(tensor) {
   //console.log("printing session");
   // Run model with Tensor inputs and get the result.
   const result = await session.run(feeds);
-  onDownload(result, "output.json");
+  //onDownload(result, "output.json");
   return result;
 }
 
@@ -32,18 +32,23 @@ async function runSingleModel(imageSize, arrayExpected, modelName) {
 async function runBatchModel(
   imageSize,
   arrayExpected,
-  url,
-  fileName,
+  imagesArray,
+  urlArray,
   modelName
 ) {
+  if (urlArray.length === 0) {
+    urlArray = arrayURLs;
+  }
+  let times = {};
   var startTime = performance.now();
   var timeImageArray = performance.now();
-  const imageArray = await getImagesArray(url);
-  var FTimeImageArray = performance.now();
-  console.log(
-    "Tiempo procesado en fetch de imágenes: ",
-    FTimeImageArray - timeImageArray
-  );
+  var imageArray = imagesArray;
+  if (imagesArray.length === 0) {
+    imageArray = await getImagesArray(urlArray);
+  }
+  var FTimeImageArray = performance.now() - timeImageArray;
+  times["images"] = FTimeImageArray;
+  console.log("Tiempo procesado en fetch de imágenes: ", FTimeImageArray);
   //console.log(imageArray);
 
   var timeTensor = performance.now();
@@ -53,31 +58,69 @@ async function runBatchModel(
     arrayExpected,
     modelName
   );
-  var FTimeTensor = performance.now();
-  console.log(
-    "Tiempo procesado en tensor de imágenes: ",
-    FTimeTensor - timeTensor
-  );
+  var FTimeTensor = performance.now() - timeTensor;
+  times["tensor"] = FTimeTensor;
+  console.log("Tiempo procesado en tensor de imágenes: ", FTimeTensor);
 
   var timeRunModel = performance.now();
   const result = await runOnnxModel(tensorImages);
-  var FtimeRunModel = performance.now();
-  console.log(
-    "Tiempo procesado en ejecución de modelo: ",
-    FtimeRunModel - timeRunModel
-  );
+  var FtimeRunModel = performance.now() - timeRunModel;
+  times["model"] = FtimeRunModel;
+  console.log("Tiempo procesado en ejecución de modelo: ", FtimeRunModel);
   var finishTime = performance.now() - startTime;
+  times["total"] = finishTime;
   console.log("Tiempo procesado total: ", finishTime);
-  return result;
+  //postJSON(result, "http://localhost:3001/data");
+  return times;
 }
 
-//Obtains an array of images connecting to an url
-async function getImagesArray(url) {
-  imgArray = Array();
+//Run a benchmark of repetition with up to 5 images in batch
+//Goes from 1 image to 5 images
+async function runBenchmark(
+  imageSize,
+  arrayExpected,
+  url,
+  urlArray,
+  modelName
+) {
+  //console.log(width, height);
 
-  //In case of using a server in localhost to host images
-  if (url.includes("localhost")) {
-    fetch(url, {
+  //Create arrays than will have the json
+  var timesJson = [];
+  var timesJsonAvg = [];
+  const urlsArray = await (await fetch("http://localhost:3001/getUrls")).json();
+  const imagesArray = await getImagesArray(urlsArray);
+  //console.log(imagesArray.length);
+  //console.log(imagesArray);
+  //Start the repetitions
+  for (let rep = 1; rep < imagesArray.length + 1; rep++) {
+    if (rep == 7) {
+      break;
+    }
+    let urlArray = imagesArray.slice(0, rep);
+    console.log("Testing with: ", urlArray.length, " images");
+
+    //console.log(urlArray);
+    //create json for each repetition
+    timesJson[rep - 1] = await runBatchModel(
+      imageSize,
+      arrayExpected,
+      urlArray,
+      urlArray,
+      modelName
+    );
+  }
+  //Saving documents to json file to be proccesed
+  await postJSON(timesJson, "http://localhost:3001/times");
+  console.log("Json Times: ", timesJson);
+  //onDownload(timesJson, modelName + "-" + "wasm-browser" + ".json");
+  //   onDownload(timesJsonAvg, "avg-" + modelName + "-" + backend + ".json");
+}
+//Obtains an array of images connecting to an url
+async function getImagesArray(urls) {
+  let imgArray = [];
+  if (urls[0].includes("localhost")) {
+    fetch(urls[0], {
       method: "GET"
     })
       .then((response) => response.json())
@@ -111,16 +154,13 @@ async function getImagesArray(url) {
       });
     //Using a link/links to get images
   } else {
-    for (const url of arrayURLs) {
-      //console.log(url);
+    for (const url of urls) {
       const image = await fetchUrl(url);
-      //console.log(image);
       imgArray.push(image);
-      //document.body.appendChild(image);
-      //console.log("images on url = ", imgArray.length);
     }
   }
   //console.log(imgArray);
+
   return imgArray;
 }
 

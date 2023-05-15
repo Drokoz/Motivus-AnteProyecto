@@ -29,6 +29,45 @@ app.use(function (req, res, next) {
   next();
 });
 
+app.post("/data", function (req, res) {
+  global.finishedData = req.body;
+  res.send(JSON.stringify("Data posted"));
+});
+
+app.get("/data", function (req, res) {
+  res.send(global.finishedData);
+});
+
+app.post("/times", function (req, res) {
+  global.finishedTimes = req.body;
+  res.send(JSON.stringify("Times posted"));
+});
+
+app.get("/times", function (req, res) {
+  res.send(global.finishedTimes);
+});
+
+app.get("/getUrls", async function (req, res) {
+  const myurls = await fetch("https://picsum.photos/v2/list")
+    .then((response) => {
+      return response.json();
+    })
+    .then((json) => {
+      let urlsArray = [];
+      for (const data of json) {
+        urlsArray.push(data["download_url"]);
+      }
+      //console.log(urlsArray);
+      return urlsArray;
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+  console.log(myurls);
+  global.urlsArray = myurls;
+  res.send(JSON.stringify(myurls));
+});
+
 app.get("/images", function (req, res) {
   let imagesList = [];
 
