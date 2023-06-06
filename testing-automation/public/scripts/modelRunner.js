@@ -94,7 +94,7 @@ async function runBenchmark(
   //console.log(imagesArray);
   //Start the repetitions
   for (let rep = 1; rep < imagesArray.length + 1; rep++) {
-    if (rep == 7) {
+    if (rep == 8) {
       break;
     }
     let urlArray = imagesArray.slice(0, rep);
@@ -113,7 +113,8 @@ async function runBenchmark(
   //Saving documents to json file to be proccesed
   await postJSON(timesJson, "http://localhost:3001/times");
   console.log("Json Times: ", timesJson);
-  //onDownload(timesJson, modelName + "-" + "wasm-browser" + ".json");
+  await onDownload(timesJson, modelName + "-" + "wasm-browser" + ".json");
+  console.log("Download ready");
   //   onDownload(timesJsonAvg, "avg-" + modelName + "-" + backend + ".json");
 }
 //Obtains an array of images connecting to an url
