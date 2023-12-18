@@ -5,8 +5,9 @@ const modelName = "benchmark";
   for (let rep = 1; rep < 10; rep++) {
     console.log("Starting");
 
-    const browser = await puppeteer.launch({ headless: true });
+    const browser = await puppeteer.launch({ headless: true , protocolTimeout: 0});
     const page = await browser.newPage();
+    page.setDefaultNavigationTimeout(0);
     console.log("Going to page");
     await page.goto("http://localhost:3001/", {
       waitUntil: "load",
@@ -64,7 +65,7 @@ const modelName = "benchmark";
           credentssials: "include"
         }).then((r) => r.json());
       });
-      console.log(typeof res2);
+      //console.log(typeof res2);
       //console.log(JSON.stringify(res));
       await fs.writeFileSync(
         "../data/resnet-wasm-headless" + rep.toString() + ".json",
